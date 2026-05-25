@@ -10,6 +10,7 @@ A full-stack application for creating and managing scheduled task executions.
 | Backend  | Java 21, Spring Boot 3.4, Spring Data JPA, Quartz Scheduler |
 | Database | MySQL 8.0 |
 | Infra    | Docker, Docker Compose |
+| Testing  | Backend — JUnit 5, Spring Boot Test, H2 (in-memory) · Frontend — Vitest, React Testing Library |
 
 ---
 
@@ -65,12 +66,38 @@ Opens at http://localhost:5173. API calls are proxied to `http://localhost:8080`
 
 ## Running tests
 
+### Backend
+
 ```bash
 cd backend
 ./mvnw test
 ```
 
-Tests run against an in-memory H2 database (no MySQL required).
+Runs 24 tests (16 unit + 8 integration) against an in-memory H2 database — no MySQL required.
+
+| Suite | Class | Coverage |
+|-------|-------|----------|
+| Unit | `TriggerFactoryTest` | Trigger building for all 4 schedule types |
+| Unit | `TaskSchemaRegistryTest` | Schema lookup and required-param validation |
+| Unit | `ScheduleConfigSerializationTest` | Jackson round-trip for all config types |
+| Integration | `SchedulingControllerIntegrationTest` | Full HTTP → DB → Quartz lifecycle |
+
+### Frontend
+
+```bash
+cd frontend
+npm test
+```
+
+Runs 36 tests across 5 suites using Vitest and React Testing Library.
+
+| Suite | File | Coverage |
+|-------|------|----------|
+| Unit | `dateUtils.test.ts` | `formatDateTime` with undefined, empty, and valid dates |
+| Unit | `apiError.test.ts` | `getApiErrorMessage` with Axios errors, plain errors, unknown types |
+| Component | `StatusBadge.test.tsx` | Label rendering and Tailwind classes for each status |
+| Component | `TaskParamFields.test.tsx` | Text vs select rendering, required marker, `defaultValue` and `— select —` logic |
+| Component | `SchedulingTable.test.tsx` | Loading/error/empty states, row rendering, pause/resume/edit/delete flows |
 
 ---
 
@@ -95,9 +122,11 @@ scheduling-system/
 ├── frontend/         React + TypeScript application
 │   └── src/
 │       ├── api/        Axios API client
-│       ├── components/ UI components
+│       ├── components/ UI components (*.test.tsx co-located)
 │       ├── hooks/      TanStack Query hooks
-│       └── types/      TypeScript interfaces
+│       ├── types/      TypeScript interfaces
+│       ├── utils/      Shared utilities (*.test.ts co-located)
+│       └── test/       Vitest setup and jest-dom configuration
 └── docker/
     └── docker-compose.yml
 ```
@@ -108,7 +137,7 @@ scheduling-system/
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET    | /api/schedulings | List all schedulings |
+| GET    | /api/schedulings | List schedulings (paginated, default page 0 size 50) |
 | GET    | /api/schedulings/{id} | Get one scheduling |
 | POST   | /api/schedulings | Create scheduling |
 | PUT    | /api/schedulings/{id} | Update scheduling |
