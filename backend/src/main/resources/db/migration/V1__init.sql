@@ -3,7 +3,7 @@ CREATE TABLE scheduling (
     name          VARCHAR(255) NOT NULL,
     description   TEXT,
     task_type     VARCHAR(50)  NOT NULL,
-    task_params   TEXT         NOT NULL DEFAULT '{}',
+    task_params   TEXT         NOT NULL,
     schedule_type VARCHAR(50)  NOT NULL,
     schedule_config TEXT       NOT NULL,
     status        VARCHAR(20)  NOT NULL DEFAULT 'ACTIVE',
