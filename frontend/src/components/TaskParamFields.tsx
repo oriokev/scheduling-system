@@ -1,16 +1,16 @@
-import type { UseFormRegister, FormState } from 'react-hook-form'
+import { useFormContext } from 'react-hook-form'
 import type { ParameterSchema } from '../types/scheduling'
 import type { SchedulingFormValues } from './SchedulingFormModal'
 
 interface Props {
   schema: ParameterSchema[]
-  register: UseFormRegister<SchedulingFormValues>
-  errors: FormState<SchedulingFormValues>['errors']
 }
 
 const inputClass = "w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
 
-export function TaskParamFields({ schema, register, errors }: Props) {
+export function TaskParamFields({ schema }: Props) {
+  const { register, formState: { errors } } = useFormContext<SchedulingFormValues>()
+
   if (schema.length === 0) return null
 
   return (

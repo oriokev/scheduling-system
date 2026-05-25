@@ -1,15 +1,10 @@
-import type { UseFormRegister, UseFormWatch, FormState } from 'react-hook-form'
+import { useFormContext } from 'react-hook-form'
 import type { SchedulingFormValues } from './SchedulingFormModal'
-
-interface Props {
-  register: UseFormRegister<SchedulingFormValues>
-  watch: UseFormWatch<SchedulingFormValues>
-  errors: FormState<SchedulingFormValues>['errors']
-}
 
 const DAYS = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY']
 
-export function ScheduleConfigFields({ register, watch, errors }: Props) {
+export function ScheduleConfigFields() {
+  const { register, watch, formState: { errors } } = useFormContext<SchedulingFormValues>()
   const scheduleType = watch('scheduleType')
 
   return (

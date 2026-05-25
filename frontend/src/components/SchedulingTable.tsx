@@ -3,21 +3,17 @@ import { Pencil, Trash2, PauseCircle, PlayCircle, Plus, RefreshCw } from 'lucide
 import { StatusBadge } from './StatusBadge'
 import { useSchedulings, useDeleteScheduling, usePauseScheduling, useResumeScheduling } from '../hooks/useSchedulings'
 import type { Scheduling } from '../types/scheduling'
+import { formatDateTime } from '../utils/dateUtils'
 
 interface Props {
   onEdit: (s: Scheduling) => void
   onCreate: () => void
 }
 
-function formatDate(iso?: string) {
-  if (!iso) return '—'
-  return new Date(iso).toLocaleString()
-}
-
 function scheduleLabel(s: Scheduling): string {
   const cfg = s.scheduleConfig
   switch (cfg.type) {
-    case 'ONE_TIME':   return `Once at ${formatDate(cfg.runAt)}`
+    case 'ONE_TIME':   return `Once at ${formatDateTime(cfg.runAt)}`
     case 'RECURRING':  return `Every ${cfg.intervalValue} ${cfg.intervalUnit.toLowerCase()}`
     case 'WEEKLY':     return `${cfg.dayOfWeek.charAt(0) + cfg.dayOfWeek.slice(1).toLowerCase()} at ${cfg.time}`
     case 'CRON':       return cfg.expression
@@ -113,8 +109,8 @@ export function SchedulingTable({ onEdit, onCreate }: Props) {
                   <td className="px-6 py-4 text-gray-600">{s.taskTypeDisplayName}</td>
                   <td className="px-6 py-4 text-gray-600 font-mono text-xs">{scheduleLabel(s)}</td>
                   <td className="px-6 py-4"><StatusBadge status={s.status} /></td>
-                  <td className="px-6 py-4 text-gray-500 text-xs">{formatDate(s.nextRunAt)}</td>
-                  <td className="px-6 py-4 text-gray-500 text-xs">{formatDate(s.lastRunAt)}</td>
+                  <td className="px-6 py-4 text-gray-500 text-xs">{formatDateTime(s.nextRunAt)}</td>
+                  <td className="px-6 py-4 text-gray-500 text-xs">{formatDateTime(s.lastRunAt)}</td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-1">
                       {s.status === 'ACTIVE' && (

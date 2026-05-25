@@ -1,7 +1,7 @@
 import axios from 'axios'
 import type { Scheduling, SchedulingRequest, TaskTypeInfo, PageResponse } from '../types/scheduling'
 
-const client = axios.create({ baseURL: '/api' })
+const client = axios.create({ baseURL: import.meta.env.VITE_API_URL ?? '/api' })
 
 export const schedulingApi = {
   list: (): Promise<Scheduling[]> =>

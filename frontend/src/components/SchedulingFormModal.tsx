@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, FormProvider } from 'react-hook-form'
 import { X } from 'lucide-react'
 import { useTaskTypes, useCreateScheduling, useUpdateScheduling } from '../hooks/useSchedulings'
 import { ScheduleConfigFields } from './ScheduleConfigFields'
@@ -31,9 +31,7 @@ export function SchedulingFormModal({ editing, onClose }: Props) {
   const createMutation = useCreateScheduling()
   const updateMutation = useUpdateScheduling()
 
-  const {
-    register, handleSubmit, watch, reset, setValue, formState: { errors, isSubmitting },
-  } = useForm<SchedulingFormValues>({
+  const methods = useForm<SchedulingFormValues>({
     defaultValues: {
       scheduleType: 'RECURRING',
       intervalUnit: 'MINUTES',
@@ -44,6 +42,8 @@ export function SchedulingFormModal({ editing, onClose }: Props) {
       taskParams: {},
     },
   })
+
+  const { handleSubmit, watch, reset, setValue, formState: { isSubmitting } } = methods
 
   const selectedTaskType = watch('taskType')
   const currentSchema = taskTypes.find(t => t.value === selectedTaskType)?.schema ?? []
@@ -111,101 +111,96 @@ export function SchedulingFormModal({ editing, onClose }: Props) {
   const error = createMutation.error || updateMutation.error
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 max-h-[90vh] flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b">
-          <h2 className="text-lg font-semibold text-gray-900">
-            {editing ? 'Edit Scheduling' : 'New Scheduling'}
-          </h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-            <X size={20} />
-          </button>
-        </div>
-
-        {/* Body */}
-        <form id="scheduling-form" onSubmit={handleSubmit(onSubmit)} className="overflow-y-auto p-6 space-y-6 flex-1">
-          {/* Basic info */}
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Name <span className="text-red-500">*</span></label>
-              <input
-                type="text"
-                {...register('name', { required: 'Name is required' })}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-              <input
-                type="text"
-                {...register('description')}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
+    <FormProvider {...methods}>
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+        <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 max-h-[90vh] flex flex-col">
+          <div className="flex items-center justify-between px-6 py-4 border-b">
+            <h2 className="text-lg font-semibold text-gray-900">
+              {editing ? 'Edit Scheduling' : 'New Scheduling'}
+            </h2>
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+              <X size={20} />
+            </button>
           </div>
 
-          {/* Task selection */}
-          <div>
-            <h3 className="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wide">Task</h3>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Task Type <span className="text-red-500">*</span></label>
-              {taskTypesLoading ? (
-                <p className="text-sm text-gray-400 py-2">Loading task types…</p>
-              ) : (
-                <select
-                  {...register('taskType', { required: 'Required' })}
+          <form id="scheduling-form" onSubmit={handleSubmit(onSubmit)} className="overflow-y-auto p-6 space-y-6 flex-1">
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Name <span className="text-red-500">*</span></label>
+                <input
+                  type="text"
+                  {...methods.register('name', { required: 'Name is required' })}
                   className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  {taskTypes.map(t => (
-                    <option key={t.value} value={t.value}>{t.displayName}</option>
-                  ))}
-                </select>
-              )}
+                />
+                {methods.formState.errors.name && <p className="text-red-500 text-xs mt-1">{methods.formState.errors.name.message}</p>}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <input
+                  type="text"
+                  {...methods.register('description')}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
             </div>
-          </div>
 
-          {/* Task parameters */}
-          {currentSchema.length > 0 && (
             <div>
-              <h3 className="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wide">Parameters</h3>
-              <TaskParamFields schema={currentSchema} register={register} errors={errors} />
+              <h3 className="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wide">Task</h3>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Task Type <span className="text-red-500">*</span></label>
+                {taskTypesLoading ? (
+                  <p className="text-sm text-gray-400 py-2">Loading task types…</p>
+                ) : (
+                  <select
+                    {...methods.register('taskType', { required: 'Required' })}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    {taskTypes.map(t => (
+                      <option key={t.value} value={t.value}>{t.displayName}</option>
+                    ))}
+                  </select>
+                )}
+              </div>
             </div>
-          )}
 
-          {/* Schedule config */}
-          <div>
-            <h3 className="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wide">Schedule</h3>
-            <ScheduleConfigFields register={register} watch={watch} errors={errors} />
+            {currentSchema.length > 0 && (
+              <div>
+                <h3 className="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wide">Parameters</h3>
+                <TaskParamFields schema={currentSchema} />
+              </div>
+            )}
+
+            <div>
+              <h3 className="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wide">Schedule</h3>
+              <ScheduleConfigFields />
+            </div>
+
+            {error && (
+              <p className="text-red-600 text-sm bg-red-50 border border-red-200 rounded p-3">
+                {getApiErrorMessage(error)}
+              </p>
+            )}
+          </form>
+
+          <div className="flex justify-end gap-3 px-6 py-4 border-t bg-gray-50 rounded-b-xl">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              form="scheduling-form"
+              disabled={isSubmitting}
+              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 disabled:opacity-50"
+            >
+              {isSubmitting ? 'Saving…' : editing ? 'Update' : 'Create'}
+            </button>
           </div>
-
-          {error && (
-            <p className="text-red-600 text-sm bg-red-50 border border-red-200 rounded p-3">
-              {getApiErrorMessage(error)}
-            </p>
-          )}
-        </form>
-
-        {/* Footer */}
-        <div className="flex justify-end gap-3 px-6 py-4 border-t bg-gray-50 rounded-b-xl">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            form="scheduling-form"
-            disabled={isSubmitting}
-            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 disabled:opacity-50"
-          >
-            {isSubmitting ? 'Saving…' : editing ? 'Update' : 'Create'}
-          </button>
         </div>
       </div>
-    </div>
+    </FormProvider>
   )
 }
