@@ -6,7 +6,9 @@ import com.oriokev.schedulingsystem.domain.schedule.ScheduleConfig;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UuidGenerator;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -20,6 +22,7 @@ public class Scheduling {
 
     @Id
     @UuidGenerator
+    @JdbcTypeCode(SqlTypes.VARCHAR)
     @Column(length = 36)
     private UUID id;
 
