@@ -85,7 +85,7 @@ class SchedulingControllerIntegrationTest {
 
         mvc.perform(get("/api/schedulings"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(2));
+                .andExpect(jsonPath("$.content.length()").value(2));
     }
 
     @Test
