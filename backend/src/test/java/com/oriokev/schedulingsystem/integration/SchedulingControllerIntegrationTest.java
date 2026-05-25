@@ -79,13 +79,34 @@ class SchedulingControllerIntegrationTest {
     }
 
     @Test
-    void listSchedulings_returnsAll() throws Exception {
+    void listSchedulings_returnsPagedResult() throws Exception {
         createViaApi("First",  Map.of("message", "a"));
         createViaApi("Second", Map.of("message", "b"));
+        createViaApi("Third",  Map.of("message", "c"));
 
         mvc.perform(get("/api/schedulings"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content.length()").value(2));
+                .andExpect(jsonPath("$.content.length()").value(3))
+                .andExpect(jsonPath("$.page.totalElements").value(3))
+                .andExpect(jsonPath("$.page.totalPages").value(1))
+                .andExpect(jsonPath("$.page.number").value(0));
+    }
+
+    @Test
+    void listSchedulings_pageSizeIsRespected() throws Exception {
+        createViaApi("A", Map.of("message", "a"));
+        createViaApi("B", Map.of("message", "b"));
+        createViaApi("C", Map.of("message", "c"));
+
+        mvc.perform(get("/api/schedulings?size=2&page=0"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(2))
+                .andExpect(jsonPath("$.page.totalElements").value(3))
+                .andExpect(jsonPath("$.page.totalPages").value(2));
+
+        mvc.perform(get("/api/schedulings?size=2&page=1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(1));
     }
 
     @Test
