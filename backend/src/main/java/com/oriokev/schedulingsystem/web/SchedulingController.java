@@ -4,10 +4,12 @@ import com.oriokev.schedulingsystem.service.SchedulingService;
 import com.oriokev.schedulingsystem.web.dto.SchedulingRequest;
 import com.oriokev.schedulingsystem.web.dto.SchedulingResponse;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -21,8 +23,8 @@ public class SchedulingController {
     }
 
     @GetMapping
-    public List<SchedulingResponse> list() {
-        return service.findAll();
+    public Page<SchedulingResponse> list(@PageableDefault(size = 50, sort = "createdAt") Pageable pageable) {
+        return service.findAll(pageable);
     }
 
     @GetMapping("/{id}")

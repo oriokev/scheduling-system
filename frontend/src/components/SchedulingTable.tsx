@@ -122,6 +122,7 @@ export function SchedulingTable({ onEdit, onCreate }: Props) {
                           onClick={() => pauseMutation.mutate(s.id)}
                           className="p-1.5 text-yellow-600 hover:bg-yellow-50 rounded"
                           title="Pause"
+                          aria-label="Pause"
                         >
                           <PauseCircle size={16} />
                         </button>
@@ -131,6 +132,7 @@ export function SchedulingTable({ onEdit, onCreate }: Props) {
                           onClick={() => resumeMutation.mutate(s.id)}
                           className="p-1.5 text-green-600 hover:bg-green-50 rounded"
                           title="Resume"
+                          aria-label="Resume"
                         >
                           <PlayCircle size={16} />
                         </button>
@@ -139,6 +141,7 @@ export function SchedulingTable({ onEdit, onCreate }: Props) {
                         onClick={() => onEdit(s)}
                         className="p-1.5 text-blue-600 hover:bg-blue-50 rounded"
                         title="Edit"
+                        aria-label="Edit"
                       >
                         <Pencil size={16} />
                       </button>
@@ -150,6 +153,7 @@ export function SchedulingTable({ onEdit, onCreate }: Props) {
                             : 'text-red-500 hover:bg-red-50'
                         }`}
                         title={confirmDelete === s.id ? 'Click again to confirm' : 'Delete'}
+                        aria-label={confirmDelete === s.id ? 'Click again to confirm delete' : 'Delete'}
                       >
                         <Trash2 size={16} />
                       </button>

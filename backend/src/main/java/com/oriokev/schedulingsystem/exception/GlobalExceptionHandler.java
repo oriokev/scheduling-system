@@ -1,5 +1,6 @@
 package com.oriokev.schedulingsystem.exception;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -18,44 +19,46 @@ public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    record ErrorResponse(int status, String error, String message, LocalDateTime timestamp) {}
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    record ErrorResponse(int status, String error, String message, LocalDateTime timestamp, Map<String, String> fieldErrors) {
+        static ErrorResponse of(HttpStatus httpStatus, String message) {
+            return new ErrorResponse(httpStatus.value(), httpStatus.getReasonPhrase(), message, LocalDateTime.now(), null);
+        }
+    }
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleNotFound(ResourceNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(new ErrorResponse(404, "Not Found", ex.getMessage(), LocalDateTime.now()));
+                .body(ErrorResponse.of(HttpStatus.NOT_FOUND, ex.getMessage()));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleBadRequest(IllegalArgumentException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(new ErrorResponse(400, "Bad Request", ex.getMessage(), LocalDateTime.now()));
+                .body(ErrorResponse.of(HttpStatus.BAD_REQUEST, ex.getMessage()));
     }
 
     @ExceptionHandler(IllegalStateException.class)
-    public ResponseEntity<ErrorResponse> handleConflict(IllegalStateException ex) {
-        return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(new ErrorResponse(409, "Conflict", ex.getMessage(), LocalDateTime.now()));
+    public ResponseEntity<ErrorResponse> handleUnprocessable(IllegalStateException ex) {
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+                .body(ErrorResponse.of(HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, Object>> handleValidation(MethodArgumentNotValidException ex) {
+    public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException ex) {
         Map<String, String> fieldErrors = new HashMap<>();
         for (FieldError fe : ex.getBindingResult().getFieldErrors()) {
             fieldErrors.put(fe.getField(), fe.getDefaultMessage());
         }
-        Map<String, Object> body = new HashMap<>();
-        body.put("status", 400);
-        body.put("error", "Validation Failed");
-        body.put("fieldErrors", fieldErrors);
-        body.put("timestamp", LocalDateTime.now().toString());
-        return ResponseEntity.badRequest().body(body);
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        return ResponseEntity.status(status)
+                .body(new ErrorResponse(status.value(), "Validation Failed", "Request validation failed", LocalDateTime.now(), fieldErrors));
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneric(Exception ex) {
         log.error("Unexpected error", ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ErrorResponse(500, "Internal Server Error", "An unexpected error occurred", LocalDateTime.now()));
+                .body(ErrorResponse.of(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred"));
     }
 }

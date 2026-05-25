@@ -16,10 +16,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
-import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -44,10 +46,8 @@ public class SchedulingService {
     }
 
     @Transactional(readOnly = true)
-    public List<SchedulingResponse> findAll() {
-        return repository.findAll().stream()
-                .map(SchedulingResponse::from)
-                .toList();
+    public Page<SchedulingResponse> findAll(Pageable pageable) {
+        return repository.findAll(pageable).map(SchedulingResponse::from);
     }
 
     @Transactional(readOnly = true)

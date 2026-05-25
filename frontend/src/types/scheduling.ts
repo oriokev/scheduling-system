@@ -58,6 +58,14 @@ export interface Scheduling {
   nextRunAt?: string
 }
 
+export interface PageResponse<T> {
+  content: T[]
+  totalElements: number
+  totalPages: number
+  number: number
+  size: number
+}
+
 export interface SchedulingRequest {
   name: string
   description?: string

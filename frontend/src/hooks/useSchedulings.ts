@@ -8,7 +8,7 @@ const KEYS = {
 }
 
 export function useSchedulings() {
-  return useQuery({ queryKey: KEYS.all, queryFn: schedulingApi.list })
+  return useQuery({ queryKey: KEYS.all, queryFn: schedulingApi.list, refetchInterval: 30_000 })
 }
 
 export function useTaskTypes() {

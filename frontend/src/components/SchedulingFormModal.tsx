@@ -4,23 +4,20 @@ import { X } from 'lucide-react'
 import { useTaskTypes, useCreateScheduling, useUpdateScheduling } from '../hooks/useSchedulings'
 import { ScheduleConfigFields } from './ScheduleConfigFields'
 import { TaskParamFields } from './TaskParamFields'
-import type { Scheduling, SchedulingRequest, ScheduleConfig } from '../types/scheduling'
+import type { Scheduling, SchedulingRequest, ScheduleConfig, TaskType, ScheduleType, IntervalUnit } from '../types/scheduling'
+import { getApiErrorMessage } from '../utils/apiError'
 
 export interface SchedulingFormValues {
   name: string
   description: string
-  taskType: string
+  taskType: TaskType
   taskParams: Record<string, string>
-  scheduleType: string
-  // ONE_TIME
+  scheduleType: ScheduleType
   runAt: string
-  // RECURRING
   intervalValue: number
-  intervalUnit: string
-  // WEEKLY
+  intervalUnit: IntervalUnit
   dayOfWeek: string
   weeklyTime: string
-  // CRON
   cronExpression: string
 }
 
@@ -30,7 +27,7 @@ interface Props {
 }
 
 export function SchedulingFormModal({ editing, onClose }: Props) {
-  const { data: taskTypes = [] } = useTaskTypes()
+  const { data: taskTypes = [], isLoading: taskTypesLoading } = useTaskTypes()
   const createMutation = useCreateScheduling()
   const updateMutation = useUpdateScheduling()
 
@@ -83,7 +80,7 @@ export function SchedulingFormModal({ editing, onClose }: Props) {
       case 'ONE_TIME':
         return { type: 'ONE_TIME', runAt: new Date(values.runAt).toISOString().slice(0, 19) }
       case 'RECURRING':
-        return { type: 'RECURRING', intervalValue: Number(values.intervalValue), intervalUnit: values.intervalUnit as any }
+        return { type: 'RECURRING', intervalValue: Number(values.intervalValue), intervalUnit: values.intervalUnit }
       case 'WEEKLY':
         return { type: 'WEEKLY', dayOfWeek: values.dayOfWeek, time: values.weeklyTime }
       case 'CRON':
@@ -97,9 +94,9 @@ export function SchedulingFormModal({ editing, onClose }: Props) {
     const req: SchedulingRequest = {
       name: values.name,
       description: values.description || undefined,
-      taskType: values.taskType as any,
+      taskType: values.taskType,
       taskParams: values.taskParams ?? {},
-      scheduleType: values.scheduleType as any,
+      scheduleType: values.scheduleType,
       scheduleConfig: buildScheduleConfig(values),
     }
 
@@ -127,7 +124,7 @@ export function SchedulingFormModal({ editing, onClose }: Props) {
         </div>
 
         {/* Body */}
-        <form onSubmit={handleSubmit(onSubmit)} className="overflow-y-auto p-6 space-y-6 flex-1">
+        <form id="scheduling-form" onSubmit={handleSubmit(onSubmit)} className="overflow-y-auto p-6 space-y-6 flex-1">
           {/* Basic info */}
           <div className="space-y-4">
             <div>
@@ -154,14 +151,18 @@ export function SchedulingFormModal({ editing, onClose }: Props) {
             <h3 className="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wide">Task</h3>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Task Type <span className="text-red-500">*</span></label>
-              <select
-                {...register('taskType', { required: 'Required' })}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                {taskTypes.map(t => (
-                  <option key={t.value} value={t.value}>{t.displayName}</option>
-                ))}
-              </select>
+              {taskTypesLoading ? (
+                <p className="text-sm text-gray-400 py-2">Loading task types…</p>
+              ) : (
+                <select
+                  {...register('taskType', { required: 'Required' })}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  {taskTypes.map(t => (
+                    <option key={t.value} value={t.value}>{t.displayName}</option>
+                  ))}
+                </select>
+              )}
             </div>
           </div>
 
@@ -181,7 +182,7 @@ export function SchedulingFormModal({ editing, onClose }: Props) {
 
           {error && (
             <p className="text-red-600 text-sm bg-red-50 border border-red-200 rounded p-3">
-              {(error as any)?.response?.data?.message ?? 'An error occurred'}
+              {getApiErrorMessage(error)}
             </p>
           )}
         </form>
@@ -198,7 +199,6 @@ export function SchedulingFormModal({ editing, onClose }: Props) {
           <button
             type="submit"
             form="scheduling-form"
-            onClick={handleSubmit(onSubmit)}
             disabled={isSubmitting}
             className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 disabled:opacity-50"
           >
