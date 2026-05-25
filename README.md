@@ -165,6 +165,5 @@ This project was built with **Claude Code (claude-sonnet-4-6)** used as a senior
 - Generate all Java backend source files (domain model, services, controllers, Quartz integration)
 - Generate all React frontend files (components, hooks, API client, TypeScript types)
 - Write unit and integration tests
-- Author this README
 
 All generated code was reviewed for correctness, security, and alignment with the assessment requirements.

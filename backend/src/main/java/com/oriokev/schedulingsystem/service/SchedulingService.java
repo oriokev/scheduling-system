@@ -69,7 +69,6 @@ public class SchedulingService {
 
         repository.save(scheduling);
         scheduleInQuartz(scheduling);
-        repository.save(scheduling);
 
         log.info("Created scheduling '{}' ({})", scheduling.getName(), scheduling.getId());
         return SchedulingResponse.from(scheduling);
@@ -111,10 +110,10 @@ public class SchedulingService {
         try {
             scheduler.pauseJob(TriggerFactory.jobKey(id.toString()));
         } catch (SchedulerException e) {
-            log.warn("Could not pause Quartz job for {}: {}", id, e.getMessage());
+            throw new RuntimeException("Failed to pause scheduler job: " + e.getMessage(), e);
         }
         scheduling.setStatus(ScheduleStatus.PAUSED);
-        return SchedulingResponse.from(repository.save(scheduling));
+        return SchedulingResponse.from(scheduling);
     }
 
     public SchedulingResponse resume(UUID id) {
@@ -130,10 +129,10 @@ public class SchedulingService {
                 scheduler.resumeJob(TriggerFactory.jobKey(id.toString()));
             }
         } catch (SchedulerException e) {
-            log.warn("Could not resume Quartz job for {}: {}", id, e.getMessage());
+            throw new RuntimeException("Failed to resume scheduler job: " + e.getMessage(), e);
         }
         scheduling.setStatus(ScheduleStatus.ACTIVE);
-        return SchedulingResponse.from(repository.save(scheduling));
+        return SchedulingResponse.from(scheduling);
     }
 
     private void scheduleInQuartz(Scheduling scheduling) {
