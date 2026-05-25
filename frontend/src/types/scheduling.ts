@@ -32,6 +32,8 @@ export interface ParameterSchema {
   type: string
   required: boolean
   description: string
+  options?: string[]
+  defaultValue?: string
 }
 
 export interface TaskTypeInfo {

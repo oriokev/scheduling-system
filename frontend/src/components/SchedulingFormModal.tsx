@@ -35,7 +35,7 @@ export function SchedulingFormModal({ editing, onClose }: Props) {
   const updateMutation = useUpdateScheduling()
 
   const {
-    register, handleSubmit, watch, reset, formState: { errors, isSubmitting },
+    register, handleSubmit, watch, reset, setValue, formState: { errors, isSubmitting },
   } = useForm<SchedulingFormValues>({
     defaultValues: {
       scheduleType: 'RECURRING',
@@ -50,6 +50,15 @@ export function SchedulingFormModal({ editing, onClose }: Props) {
 
   const selectedTaskType = watch('taskType')
   const currentSchema = taskTypes.find(t => t.value === selectedTaskType)?.schema ?? []
+
+  useEffect(() => {
+    if (editing) return
+    currentSchema.forEach(field => {
+      if (field.defaultValue != null) {
+        setValue(`taskParams.${field.name}` as any, field.defaultValue)
+      }
+    })
+  }, [selectedTaskType, taskTypes, setValue, editing])
 
   useEffect(() => {
     if (!editing) return
